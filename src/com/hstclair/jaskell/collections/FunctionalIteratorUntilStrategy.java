@@ -81,9 +81,10 @@ public class FunctionalIteratorUntilStrategy<T> extends FunctionalIteratorStrate
 
         T nextValue = originalNextExpression.evaluate();
 
-        predicateSatisfied = untilPredicate.apply(nextValue);
+        if (predicateSatisfied = untilPredicate.apply(nextValue))
+            return current = Indefinite.EMPTY;
 
-        return current = Indefinite.of(nextValue, ! predicateSatisfied);
+        return current = Indefinite.of(nextValue);
     }
 
     /**

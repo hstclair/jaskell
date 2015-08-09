@@ -18,8 +18,8 @@ public interface FunctionalSpliterator<T> extends Spliterator<T> {
 
     /**
      * performs a tryAdvance() operation and supplies results to a Functional Consumer
-     * @param action the Consumer that will accept values from the Iteration
-     * @return
+     * @param action the Consumer that will apply values from the Iteration
+     * @return true if the operation succeeded (a value was found and provided to the Consumer)
      */
     boolean tryAdvance(Consumer<? super T> action);
 
@@ -30,7 +30,7 @@ public interface FunctionalSpliterator<T> extends Spliterator<T> {
 
     /**
      * Traverses all remaining members of this Iteration, submitting each to the specified Functional Consumer
-     * @param action the Consumer that will accept values from the Iteration
+     * @param action the Consumer that will apply values from the Iteration
      */
     void forEachRemaining(Consumer<? super T> action);
 }

@@ -35,7 +35,7 @@ public class Tuple {
     }
 
     public Indefinite<Object> get(Expression<Integer> index) {
-        return this.get(index.evaluate());       // TODO: defer this accept
+        return this.get(index.evaluate());       // TODO: defer this apply
     }
 
     public Indefinite<Object> get(int index) {

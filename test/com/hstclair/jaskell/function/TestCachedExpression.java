@@ -11,38 +11,39 @@ import static org.junit.Assert.fail;
  */
 public class TestCachedExpression {
 
+    void pass() {}
+
     @Test
     public void testCachedExpressionConstructorRejectsNullExpression() {
         try {
-            new CachedExpression(null);
+            new CachedExpression<>(null);
             fail();
-        } catch (NullPointerException npe) {}
+        } catch (NullPointerException npe) {pass();}
     }
 
 
     @Test
-    public void testEvaluateReturnsTargetResult() {
-        Long expected = 100l;
-        Expression<Long> target = () -> expected;
+    public void testEvaluateReturnsExpressionResult() {
+        Object[] expected = {null};
+        Expression<Object> target = () -> expected[0] = new Object();
 
-        CachedExpression<Long> cachedExpression = new CachedExpression<>(target);
+        CachedExpression<Object> cachedExpression = new CachedExpression<>(target);
 
-        assertEquals(expected, cachedExpression.evaluate());
+        Object result = cachedExpression.evaluate();
+
+        assertEquals(expected[0], result);
     }
 
     @Test
     public void testEvaluateInvokesTargetOnlyOnce() {
         int[] invoked = {0};
 
-        Long expected = 100l;
+        Expression<Object> target = () -> { invoked[0]++; return new Object(); };
 
-        Expression<Long> target = () -> { invoked[0]++; return expected; };
+        Expression<Object> cached = new CachedExpression<>(target);
 
-        Expression<Long> cached = new CachedExpression<>(target);
-
-        assertEquals(expected, cached.evaluate());
-        assertEquals(expected, cached.evaluate());
-        assertEquals(expected, cached.evaluate());
+        cached.evaluate();
+        cached.evaluate();
 
         assertEquals(invoked[0], 1);
     }

@@ -1,50 +1,60 @@
 package com.hstclair.jaskell.function;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.LinkedList;
 
 /**
  * @author hstclair
  * @since 7/10/15 5:57 PM
  */
-class SubstitutionFunction<T, R> extends FunctionImpl<T, R> {
+class SubstitutionFunction<T, R> implements EvaluatableOperation<T, R>, Function<T, R> {
 
+    final Function<T, R> originalFunction;
     final Function<T, Indefinite<R>> substitutionFunction;
 
     SubstitutionFunction(Function<T, Indefinite<R>> substitutionFunction, Function<T, R> function) {
-        super(function);
+        originalFunction = function;
         this.substitutionFunction = substitutionFunction;
     }
 
-    SubstitutionFunction(Function<T, Indefinite<R>> substitutionFunction, List<Function> functions) {
-        super(functions);
-        this.substitutionFunction = substitutionFunction;
+    @Override
+    public R apply(T t) {
+        return performOperation(this, t);
     }
 
-    public Function<T, Indefinite<R>> getSubstitutionFunction() { return substitutionFunction; }
+    static <T, R> Function<Boolean, T> selectOriginalFunctionOrSubstituteExpression(LinkedList<Operation> operations, Function<T, R> originalFunction, Indefinite<R> indefinite, T argument) {
+        return  (performSubstitution) -> {
+            if (performSubstitution)
+                operations.push(indefinite.getEvaluateExpression());    // apply the substitution expression...
+            else
+                operations.push(originalFunction);              // or apply the original operation
 
-    public List<Function> getFunctions() { return functions; }
-
-    @Override
-    Object internalApply(List<Function> functions, Object value) {
-        Indefinite indefinite = substitutionFunction.apply((T) value);
-
-        if (indefinite.isPresent())
-            return indefinite.evaluate();
-
-        return super.internalApply(functions, value);
+            return argument;
+        };
     }
 
     @Override
-    public <V> Function<V, R> compose(Function<? super V, ? extends T> before) {
-        Objects.requireNonNull(before);
+    public void unpack(LinkedList<Operation> operations, Object argument) {
+        // this is a sta`ck, so operations are pushed in reverse order.  That makes this extra confusing...
 
-        return new FunctionImpl<V, R>((Function<V, ?>) before, this);
+        operations.push((it) -> {
+            Indefinite<R> indefinite = (Indefinite<R>) it;
+
+            // 3. The Indefinite's isPresentExpression will tell us whether to...
+            operations.push(selectOriginalFunctionOrSubstituteExpression(operations, originalFunction, indefinite, (T) argument));
+
+            // 2. The second operation we wish to perform is to apply the Indefinite's isPresent expression
+            operations.push(indefinite.getIsPresentExpression());
+
+            return argument;
+        });
+
+        // 1. The first operation we are asking to perform is to apply the substitionFunction to get the Indefinite
+        operations.push(substitutionFunction);
     }
 
     @Override
-    public <V> Function<T, V> andThen(Function<? super R, ? extends V> after) {
-        return new FunctionImpl<T, V>(this, (Function<?, V>) after);
+    public R performOperation(T t) {
+        return performOperation(this, t);
     }
 }
 

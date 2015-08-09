@@ -80,9 +80,9 @@ public class LzList<T> {
                 return Indefinite.EMPTY;
             });
 
-            Indefinite<Integer> newLengthSupplier = lengthSupplier.andThen(value -> Math.min(value, count)).orElse(Indefinite.of(count));
+            Indefinite<Integer> newLengthSupplier = Indefinite.of(lengthSupplier.andThen(value -> Math.min(value, count)).orElse(count));
 
-            return new LzList<T>(newGetFunction, newLengthSupplier, () -> true);
+            return new LzList<>(newGetFunction, newLengthSupplier, () -> true);
         };
     }
 
@@ -97,16 +97,14 @@ public class LzList<T> {
                 }
             }
 
-            LzList<T> result = new LzList<T>(getFunction.compose((value) -> value + count), lengthSupplier.andThen(length -> length - count), isFiniteSupplier);
-
-            return result;
+            return new LzList<>(getFunction.compose((value) -> value + count), lengthSupplier.andThen(length -> length - count), isFiniteSupplier);
         };
     }
 
     public <R> Expression<LzList<R>> map(Function<Indefinite<T>, Indefinite<R>> mapper) {
         Function<Integer, Indefinite<R>> mappedGetter = getFunction.andThen(mapper);
 
-        return () -> new LzList<R>(mappedGetter, lengthSupplier, isFiniteSupplier);
+        return () -> new LzList<>(mappedGetter, lengthSupplier, isFiniteSupplier);
     }
 
     public Indefinite<Integer> length() {
@@ -126,11 +124,11 @@ public class LzList<T> {
     }
 
     public static <T> LzList<T> iteration(Function<T, T> generator, T seed) {
-        Function<Integer, T> result = new Iteration<T>(generator, seed);
+        Function<Integer, T> result = new Iteration<>(generator, seed);
 
         Function<Integer, Indefinite<T>> optionalGetter = result.andThen(Indefinite::of);
 
-        return new LzList<T>(optionalGetter, Indefinite.EMPTY, () -> false);
+        return new LzList<>(optionalGetter, Indefinite.EMPTY, () -> false);
     }
 
     private static <T> Function<Integer, Indefinite<T>> curriedArrayGetterFunction(T[] array) {

@@ -22,24 +22,17 @@ public interface Indefinite<T> extends Expression<T> {
     }
 
     static <T> Indefinite<Indefinite<T>> of(Indefinite<T> indefinite) {
-        return new IndefiniteImpl<>(() -> indefinite, () -> true);
+        Objects.requireNonNull(indefinite);
+
+        return () -> indefinite;
     }
 
     static <T> Indefinite<T> of(T value, Expression<Boolean> predicate) {
         return new IndefiniteImpl<>(() -> value, predicate);
     }
 
-    static <T> Indefinite<T> of(T value, boolean present) {
-        if (! present) return Indefinite.EMPTY;
-        return Indefinite.of(value);
-    }
-
     static <T> Indefinite<T> of(Expression<T> valueExpression) {
         Objects.requireNonNull(valueExpression);
-
-        if (valueExpression instanceof ExpressionImpl) {
-            return new IndefiniteImpl<T>(valueExpression, ()-> true);
-        }
 
         return valueExpression::evaluate;
     }
@@ -51,34 +44,50 @@ public interface Indefinite<T> extends Expression<T> {
         return new IndefiniteImpl<>(valueExpression, isPresentExpression);
     }
 
-    default <R> Indefinite<R> andThen(Function<? super T, ? extends R> transformation) {
-        return new IndefiniteImpl<>(this, transformation);
+    default <R> Indefinite<R> andThen(Function<T, R> transformation) {
+        Objects.requireNonNull(transformation);
+
+        return new IndefiniteImpl<>(((Expression<T>) this::evaluate).andThen(transformation), alwaysTrue);
     }
 
+    // TODO: Probably need a Selector class
     default Expression<T> orElse(T alternate) {
-        return () -> isPresent() ? evaluate() : alternate;
+        Selector<Boolean, Expression<T>> selector = new Selector<>((Expression<T>) this::evaluate, (Expression<T>) ()->alternate);
+
+        Expression<Boolean> predicate = this::isPresent;
+
+        Expression<Expression<T>> expression = predicate.andThen(selector::performOperation).andThen(OperationExpressionizer::new);
+
+        // for some reason I can't quite follow at the moment, Java seems to reject expression::evaluate, which I believe should apply to Expression<T>
+
+        return () -> expression.evaluate().evaluate();
     }
 
-    default Indefinite<T> orElse(Indefinite<T> alternateIndefinite) {
-        return IndefiniteImpl.orElseImpl(this, alternateIndefinite);
+    default Expression<Indefinite<T>> orElse(Indefinite<T> indefinite) {
+        Selector<Boolean, Expression<Indefinite<T>>> selector = new Selector<>((Expression<Indefinite<T>>) () -> this, (Expression<Indefinite<T>>) ()->indefinite);
+
+        Expression<Boolean> predicate = this::isPresent;
+
+        Expression<Expression<Indefinite<T>>> expression = new OperationExpressionizer<>(predicate.andThen(selector::performOperation));
+
+        // for some reason I can't quite follow at the moment, Java seems to reject expression::apply, which I believe should apply to Expression<T>
+
+        return () -> expression.evaluate().evaluate();
     }
 
     default Expression<T> orElse(Expression<T> alternate) {
         return () -> isPresent() ? evaluate() : alternate.evaluate();
     }
 
-    default Indefinite<T> cache() {
+    default Expression<Boolean> getIsPresentExpression() { return alwaysTrue; }
 
+    default Expression<T> getEvaluateExpression() { return this::evaluate; }
+
+    default Indefinite<T> cache() {
         Expression<T> getter = this::evaluate;
         Expression<Boolean> present = this::isPresent;
 
         return new IndefiniteImpl<>(getter.cache(), present.cache());
-    }
-
-    default Expression<Boolean> getIsPresentExpression() { return this::isPresent; }
-
-    default Indefinite<Indefinite<T>> wrap() {
-        return new IndefiniteImpl<>(()->this, this::isPresent);
     }
 
     static <T> T extractExpression(Indefinite<Indefinite<T>> indefinite, Expression<Boolean> isPresent) {
@@ -96,7 +105,7 @@ public interface Indefinite<T> extends Expression<T> {
     static <T> Indefinite<T> unwrap(Indefinite<Indefinite<T>> indefinite) {
         Expression<Boolean> isPresentExpr = ((Expression<Boolean>) () -> extractIsPresent(indefinite)).cache();
 
-        return new IndefiniteImpl<T>(() -> extractExpression(indefinite, isPresentExpr), isPresentExpr);
+        return new IndefiniteImpl<>(() -> extractExpression(indefinite, isPresentExpr), isPresentExpr);
     }
 
     static <T> Indefinite<T> unwrap(Expression<Indefinite<T>> optionalSupplier) {

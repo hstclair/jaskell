@@ -121,7 +121,7 @@ public class FunctionalSpliteratorImpl<T> implements FunctionalSpliterator<T> {
 //
 //            T value = iterationExpression.evaluate();
 //
-//            operation.accept(value);
+//            operation.apply(value);
 //
 //            return true;
 //        };
@@ -154,7 +154,7 @@ public class FunctionalSpliteratorImpl<T> implements FunctionalSpliterator<T> {
 //        return (operation) -> {
 //            if (! hasNextExpression.evaluate()) return false;
 //
-//            operation.accept(nextExpression.evaluate());
+//            operation.apply(nextExpression.evaluate());
 //
 //            return true;
 //        };

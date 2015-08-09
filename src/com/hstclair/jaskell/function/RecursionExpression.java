@@ -8,7 +8,7 @@ import java.util.Objects;
  */
 public class RecursionExpression<T> implements Expression<T> {
 
-    /** the function that transforms each member of the Iteration into the member that follows it */
+    /** the operation that transforms each member of the Iteration into the member that follows it */
     public final Function<T, T> generatorFunction;
 
     /** the current value in the Iteration */

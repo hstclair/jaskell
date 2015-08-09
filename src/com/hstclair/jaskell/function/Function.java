@@ -7,7 +7,7 @@ import java.util.Objects;
  * @since 7/4/15 3:25 PM
  */
 @FunctionalInterface
-public interface Function<T, R> {
+public interface Function<T, R> extends Composable<T, R>, Mappable<T, R> {
 
     static <T> Function<T, T> identity() { return it->it; }
 
@@ -21,19 +21,18 @@ public interface Function<T, R> {
         return javaFunction::apply;
     }
 
+    R apply(T t);
+
     default java.util.function.Function<T, R> asJavaFunction() {
         return this::apply;
     }
 
-    default <V> Function<V, R> compose(Function<? super V, ? extends T> before) {
-        Objects.requireNonNull(before);
-        return new FunctionImpl<V, R>((Function<V, ?>) before, this);
+    default <V> Function<T, V> andThen(Function<R, V> after) {
+        return new OperationFunctionizer<>(composeWithOutputTransformer(after));
     }
 
-    default <V> Function<T, V> andThen(Function<? super R, ? extends V> after) {
-        Objects.requireNonNull(after);
-
-        return new FunctionImpl<T, V>(this, (Function<?, V>) after);
+    default <V> Function<V, R> compose(Function<V, T> before) {
+        return new OperationFunctionizer<>(composeWithInputTransformer(before));
     }
 
     default Function<T, R> substitute(Function<T, Indefinite<R>> substitutionFunction) {
@@ -46,8 +45,11 @@ public interface Function<T, R> {
         Objects.requireNonNull(range);
         Objects.requireNonNull(substitute);
 
-        return new SubstitutionFunctionByRange<T, R>(range, substitute, this);
+        return new SubstitutionFunctionByRange<>(range, substitute, this);
     }
 
-    R apply(T t);
+    @Override
+    default R performOperation(T t) {
+        return apply(t);
+    }
 }

@@ -7,7 +7,7 @@ import com.hstclair.jaskell.function.Function;
  * @author hstclair
  * @since 7/18/15 2:23 PM
  */
-public interface FunctionalIterable<T> extends Iterable<T> {    // extends iterable to accept my Function and to add the of() generator
+public interface FunctionalIterable<T> extends Iterable<T> {    // extends iterable to apply my Function and to add the of() generator
 
     /**
      * Add an Until constraint to this Iteration, allowing the consumer to process all members up to, but not including,

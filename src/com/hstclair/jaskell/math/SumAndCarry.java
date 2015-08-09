@@ -47,7 +47,7 @@
 //            return Indefinite.of(a.evaluate().longValue() + b.evaluate().longValue());
 //        };
 //
-//        return new IndefiniteImpl<>(expression.andThen(Expression::evaluate), isPresentSupplier);
+//        return new IndefiniteImpl<>(expression.andThen(Expression::apply), isPresentSupplier);
 //    }
 //
 //    static boolean noPossibleCarry(Indefinite<Integer> a, Indefinite<Integer> b) {

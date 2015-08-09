@@ -15,26 +15,16 @@ public class TestFunctionList {
 
     @Test
     public void testConstructFromListOfFunctions() {
-        List<Function> functions = new LinkedList<>();
+        List<Operation> functions = new LinkedList<>();
         functions.add(it->it);
         functions.add(it -> it);
 
-        FunctionList<Object, Object> instance = new FunctionList<>(functions);
+        OperationList<Object, Object> instance = new OperationList<>(functions);
 
-        assertEquals(functions.size(), instance.functions.size());
+        assertEquals(functions.size(), instance.operations.size());
 
         for (int index = 0; index < functions.size(); index++)
-            assertEquals(functions.get(index), instance.functions.get(index));
-    }
-
-    @Test
-    public void testConstructFromFunction() {
-        Function<Object, Object> function = (it) -> new Object();
-
-        FunctionList<Object, Object> functionList = new FunctionList<>(function);
-
-        assertEquals(1, functionList.functions.size());
-        assertEquals(function, functionList.functions.get(0));
+            assertEquals(functions.get(index), instance.operations.get(index));
     }
 
     @Test
@@ -42,61 +32,65 @@ public class TestFunctionList {
         Function<Object, Object> before = it->it;
         Function<Object, Object> after = it->it;
 
-        FunctionList<Object, Object> instance = new FunctionList<>(before, after);
+        OperationList<Object, Object> instance = new OperationList<>(before, after);
 
-        assertEquals(2, instance.functions.size());
-        assertEquals(before, instance.functions.get(0));
-        assertEquals(after, instance.functions.get(1));
+        assertEquals(2, instance.operations.size());
+        assertEquals(before, instance.operations.get(0));
+        assertEquals(after, instance.operations.get(1));
     }
 
     @Test
     public void testConstructFromFunctionListAndThenFunction() {
-        FunctionList<Object, Object> before = new FunctionList<>(it->it, it->it);
-        Function<Object, Object> after = it->it;
+        Operation<Object, Object> before1 = (it)-> it;
+        Operation<Object, Object> before2 = (it)-> it;
+        Operation<Object, Object> before = new OperationList<>(before1, before2);
+        Operation<Object, Object> after = it->it;
 
-        FunctionList<Object, Object> instance = new FunctionList<>(before, after);
+        OperationList<Object, Object> instance = new OperationList<>(before, after);
 
-        assertEquals(3, instance.functions.size());
-        assertEquals(before.functions.get(0), instance.functions.get(0));
-        assertEquals(before.functions.get(1), instance.functions.get(1));
-        assertEquals(after, instance.functions.get(2));
+        assertEquals(3, instance.operations.size());
+        assertEquals(before1, instance.operations.get(0));
+        assertEquals(before2, instance.operations.get(1));
+        assertEquals(after, instance.operations.get(2));
     }
 
     @Test
     public void testConstructFromFunctionAndThenFunctionList() {
         Function<Object, Object> before = it->it;
-        FunctionList<Object, Object> after = new FunctionList<>(it->it, it->it);
+        Function<Object, Object> after1 = it->it;
+        Function<Object, Object> after2 = it->it;
+        Operation<Object, Object> after = new OperationList<>(after1, after2);
 
-        FunctionList<Object, Object> instance = new FunctionList<>(before, after);
+        OperationList<Object, Object> instance = new OperationList<>(before, after);
 
-        assertEquals(3, instance.functions.size());
-        assertEquals(before, instance.functions.get(0));
-        assertEquals(after.functions.get(0), instance.functions.get(1));
-        assertEquals(after.functions.get(1), instance.functions.get(2));
+        assertEquals(3, instance.operations.size());
+        assertEquals(before, instance.operations.get(0));
+        assertEquals(after1, instance.operations.get(1));
+        assertEquals(after2, instance.operations.get(2));
     }
 
     @Test
     public void testAppendToListAppendsFunction() {
-        List<Function> functions = new LinkedList<>();
+        List<Operation> functions = new LinkedList<>();
         Function<Object, Object> function = (it) -> it;
 
-        FunctionList.appendToList(functions, function);
+        OperationList.appendToList(functions, function);
 
         assertEquals(1, functions.size());
         assertEquals(function, functions.get(0));
     }
 
-    @Test
-    public void testAppendToListAppendsFunctionImpl() {
-        Function<Object, Object> function = (it) -> it;
-        FunctionImpl<Object, Object> functionImpl = new FunctionImpl<Object, Object>(function);
-        List<Function> functions = new LinkedList<>();
-
-        FunctionList.appendToList(functions, functionImpl);
-
-        assertEquals(1, functions.size());
-        assertEquals(functionImpl, functions.get(0));
-    }
+//    @Test
+//    public void testAppendToListAppendsFunctionImpl() {
+//        Function<Object, Object> operation = (it) -> it;
+//        EvaluatableFunction<Object, Object> functionImpl = new EvaluatableFunction<Object, Object>(operation);
+//        List<Function> operations = new LinkedList<>();
+//
+//        OperationList.appendToList(operations, functionImpl);
+//
+//        assertEquals(1, operations.size());
+//        assertEquals(functionImpl, operations.get(0));
+//    }
 
     @Test
     public void testAppendToListAppendsOpaqueFunctionImplementation() {
@@ -107,9 +101,9 @@ public class TestFunctionList {
 
         Opaque opaque = new Opaque();
 
-        List<Function> functions = new LinkedList<>();
+        List<Operation> functions = new LinkedList<>();
 
-        FunctionList.appendToList(functions, opaque);
+        OperationList.appendToList(functions, opaque);
 
         assertEquals(1, functions.size());
         assertEquals(opaque, functions.get(0));
@@ -117,19 +111,19 @@ public class TestFunctionList {
 
     @Test
     public void testAppendToListAppendsMembersOfFunctionList() {
-        List<Function> listOfFunctions = new LinkedList<>();
+        List<Operation> listOfFunctions = new LinkedList<>();
         listOfFunctions.add(it->it);
         listOfFunctions.add(it->it);
 
-        FunctionList<Object, Object> functionList = new FunctionList<>(listOfFunctions);
+        OperationList<Object, Object> operationList = new OperationList<>(listOfFunctions);
 
-        List<Function> functions = new LinkedList<>();
+        List<Operation> functions = new LinkedList<>();
 
-        FunctionList.appendToList(functions, functionList);
+        OperationList.appendToList(functions, operationList);
 
-        assertEquals(functionList.functions.size(), functions.size());
+        assertEquals(operationList.operations.size(), functions.size());
 
         for (int index = 0; index < functions.size(); index++)
-            assertEquals(functionList.functions.get(index), functions.get(index));
+            assertEquals(operationList.operations.get(index), functions.get(index));
     }
 }

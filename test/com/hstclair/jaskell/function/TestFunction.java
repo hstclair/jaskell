@@ -31,19 +31,10 @@ public class TestFunction {
     }
 
     @Test
-    public void testFunctionOfFunctionImplReturnsFunctionImpl() {
-        Function<Long, Long> expected = new FunctionImpl<>( (it) -> it * 2 );
-
-        Function instance = Function.of(expected);
-
-        assertEquals(expected, instance);
-    }
-
-    @Test
     public void testFunctionOfSubstitutionFunctionReturnsSubstitutionFunction() {
         Function<Long, Indefinite<Long>> substitution = Indefinite::of;
         Function<Long, Long> original = (it) -> 0l;
-        Function<Long, Long> expected = new SubstitutionFunction<Long, Long>(substitution, original);
+        Function<Long, Long> expected = new SubstitutionFunction<>(substitution, original);
 
         Function<Long, Long> instance = Function.of(expected);
 
@@ -175,7 +166,7 @@ public class TestFunction {
 
         Function<Object, Object> instance = originalFunction.andThen(resultModifierFunction);
 
-        assertEquals(instance.getClass(), FunctionImpl.class);
+        assertEquals(instance.getClass(), OperationFunctionizer.class);
 
         instance.apply(new Object());
 
@@ -193,7 +184,7 @@ public class TestFunction {
 
         Function<Object, Object> instance = originalFunction.andThen(resultModifierFunction);
 
-        assertEquals(instance.getClass(), FunctionImpl.class);
+        assertEquals(instance.getClass(), OperationFunctionizer.class);
 
         expected[0] = new Object();
         instance.apply(expected[0]);
@@ -212,7 +203,7 @@ public class TestFunction {
 
         Function<Object, Object> instance = originalFunction.andThen(resultModifierFunction);
 
-        assertEquals(instance.getClass(), FunctionImpl.class);
+        assertEquals(OperationFunctionizer.class, instance.getClass());
 
         instance.apply(new Object());
 
@@ -250,7 +241,7 @@ public class TestFunction {
     public void testSubstituteIndefiniteReturnsFunctionResultWhenIndefiniteIsEmpty() {
         Object[] expected = {null};
 
-        Function<Object, Object> function = (it) -> { return expected[0] = new Object(); };
+        Function<Object, Object> function = (it) -> expected[0] = new Object();
         Function<Object, Indefinite<Object>> substituteFunction = (it) -> Indefinite.EMPTY;
 
         Function<Object, Object> instance = function.substitute(substituteFunction);
@@ -281,8 +272,8 @@ public class TestFunction {
     public void testSubstituteIndefiniteReturnsSubstituteValueWhenIndefiniteIsPresent() {
         Object[] expected = {null};
 
-        Function<Object, Object> function = (it) -> { return new Object(); };
-        Function<Object, Indefinite<Object>> substituteFunction = (it) -> { return Indefinite.of(expected[0] = new Object()); };
+        Function<Object, Object> function = (it) -> new Object();
+        Function<Object, Indefinite<Object>> substituteFunction = (it) -> Indefinite.of(expected[0] = new Object());
 
         Function<Object, Object> instance = function.substitute(substituteFunction);
 

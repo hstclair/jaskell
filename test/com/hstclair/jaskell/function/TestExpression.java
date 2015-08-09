@@ -2,9 +2,6 @@ package com.hstclair.jaskell.function;
 
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.List;
-
 import static org.junit.Assert.*;
 
 /**
@@ -12,6 +9,8 @@ import static org.junit.Assert.*;
  * @since 7/11/15 11:42 PM
  */
 public class TestExpression {
+
+    void pass() {}
 
     @Test
     public void testAlwaysTrue() {
@@ -72,7 +71,7 @@ public class TestExpression {
         try {
             Expression.from(null);
             fail();
-        } catch (NullPointerException npe) {}
+        } catch (NullPointerException npe) {pass();}
     }
 
     @Test
@@ -110,7 +109,7 @@ public class TestExpression {
         try {
             instance.andThen(null);
             fail();
-        } catch (NullPointerException npe) {}
+        } catch (NullPointerException npe) {pass();}
     }
 
     @Test
@@ -143,14 +142,12 @@ public class TestExpression {
 
     @Test
     public void testExpressionAndThenReturnsFunctionResult() {
-        boolean[] invoked = { false };
-
         Long expected = 100l;
         Long notExpected = -100l;
 
         Expression<Long> expression = () -> notExpected;
 
-        Expression<Long> finalEval = expression.andThen((it) -> { invoked[0] = true; assertEquals(notExpected, it); return expected; });
+        Expression<Long> finalEval = expression.andThen((it) -> { assertEquals(notExpected, it); return expected; });
 
         Long result = finalEval.evaluate();
 
@@ -194,45 +191,32 @@ public class TestExpression {
         assertEquals(expected[0], result);
     }
 
-    @Test
-    public void testSubstituteReturnsSubstituteValueWhenSubstituteValueIsPresent() {
-        Long notExpected = -100l;
-        Long expected = 100l;
-        boolean[] notInvoked = {true};
-        Expression<Long> lambda = () -> { notInvoked[0] = false; return notExpected; };
-
-        Expression<Long> instance = lambda.substitute(Indefinite.of(expected));
-
-        assertEquals(expected, instance.evaluate());
-        assertTrue(notInvoked[0]);
-    }
-
-    @Test
-    public void testSubstituteReturnsOriginalValueWhenSubstituteValueIsNotPresent() {
-        Long expected = 100l;
-        boolean[] invoked = {false};
-        Expression<Long> lambda = () -> { invoked[0] = true; return expected; };
-
-        Expression<Long> instance = lambda.substitute(Indefinite.EMPTY);
-
-        assertEquals(expected, instance.evaluate());
-        assertTrue(invoked[0]);
-    }
-
-    @Test
-    public void testGetTransformationsReturnsEmptyList() {
-        List<Function> expected = Collections.EMPTY_LIST;
-        Expression<Long> instance = () -> 100l;
-
-        assertEquals(expected, instance.getTransformations());
-    }
-
-    @Test
-    public void testGetExpressionReturnsSelf() {
-        Expression<Long> expected = () -> 100l;
-        assertEquals(expected, expected.getExpression());
-    }
-
+//    @Test
+//    public void testSubstituteReturnsSubstituteValueWhenSubstituteValueIsPresent() {
+//        Long notExpected = -100l;
+//        Long expected = 100l;
+//        boolean[] notInvoked = {true};
+//        Expression<Long> lambda = () -> { notInvoked[0] = false; return notExpected; };
+//
+//        Expression<Long> instance = lambda.substitute(Indefinite.of(expected));
+//
+//        assertEquals(expected, instance.evaluate());
+//        assertTrue(notInvoked[0]);
+//    }
+//
+//    @Test
+//    public void testSubstituteReturnsOriginalValueWhenSubstituteValueIsNotPresent() {
+//        Long expected = 100l;
+//        boolean[] invoked = {false};
+//        Expression<Long> lambda = () -> { invoked[0] = true; return expected; };
+//
+//        Expression<Long> instance = lambda.substitute(Indefinite.EMPTY);
+//
+//        assertEquals(expected, instance.evaluate());
+//        assertTrue(invoked[0]);
+//    }
+//
+//
 //    private static <T> Expression<T> wrap(T t) {
 //        return Expression.of(() -> t);
 //    }

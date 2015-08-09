@@ -1,56 +1,49 @@
 package com.hstclair.jaskell.function;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.LinkedList;
 
 /**
  * @author hstclair
  * @since 7/17/15 9:16 PM
  */
-public class SubstitutionFunctionByRange<T, R> extends FunctionImpl<T, R> {
+public class SubstitutionFunctionByRange<T, R> implements EvaluatableOperation<T, R>, Function<T, R> {
 
     final Function<T, Boolean> rangeFunction;
 
     final Function<T, R> substituteFunction;
 
+    final Function<T, R> originalFunction;
+
     public SubstitutionFunctionByRange(Function<T, Boolean> rangeFunction,
                                        Function<T, R> substituteFunction,
-                                       Function<T, R> function) {
-        this(rangeFunction, substituteFunction, Collections.singletonList(function));
-    }
-
-    public SubstitutionFunctionByRange(Function<T, Boolean> rangeFunction,
-                                Function<T, R> substituteFunction,
-                                List<Function> functions) {
-        super(functions);
-
-        Objects.requireNonNull(rangeFunction);
-        Objects.requireNonNull(substituteFunction);
-
+                                       Function<T, R> originalFunction) {
         this.rangeFunction = rangeFunction;
         this.substituteFunction = substituteFunction;
+        this.originalFunction = originalFunction;
     }
 
     @Override
-    Object internalApply(List<Function> functions, Object value) {
-        if (rangeFunction.apply((T)value)) {
-            functions.add(0, substituteFunction);
-            return value;
-        }
-
-        return super.internalApply(functions, value);
+    public R apply(T t) {
+        return performOperation(this, t);
     }
 
     @Override
-    public <V> Function<V, R> compose(Function<? super V, ? extends T> before) {
-        Objects.requireNonNull(before);
+    public void unpack(LinkedList<Operation> operations, Object argument) {
+        operations.push((performSubstitution) -> {
 
-        return new FunctionImpl<V, R>((Function<V, ?>) before, this);
+            if ((Boolean) performSubstitution)
+                operations.push(substituteFunction);
+            else
+                operations.push(originalFunction);
+
+            return argument;
+        });
+
+        operations.push(rangeFunction);
     }
 
     @Override
-    public <V> Function<T, V> andThen(Function<? super R, ? extends V> after) {
-        return new FunctionImpl<T, V>(this, (Function<?, V>) after);
+    public R performOperation(T t) {
+        return performOperation(this, t);
     }
 }
